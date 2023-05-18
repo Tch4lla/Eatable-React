@@ -6,6 +6,7 @@ import { LockOutlined } from '@mui/icons-material'
 import Input from './Input'
 import Icon from './icon'
 import Homepage from '../Homepage/Homepage'
+// import dotenv from 'dotenv'
 
 import { fetchProfile } from '../../utils/fetchProfile'
 import { useGoogleLogin } from '@react-oauth/google'
@@ -18,6 +19,7 @@ const initialState = { firstName: '', lastName: '', email: '', password: '', con
 const Auth = () => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
+    // const clientID = process.env.REACT_APP_GOOGLE_CLIENT_ID
     const [ showPassword, setShowPassword] = useState(false)
     const [ isSignup, setIsSignup] = useState(false)
     const [ user, setUser ] = useState(null);
@@ -41,12 +43,38 @@ const Auth = () => {
     }
 
     const googleSuccess = async ( codeResponse ) => {
+        
         try {
             const user = await fetchProfile(codeResponse)
             setUser(user)
             console.log("User: ", user)
             dispatch(setProfileAction(user))
-            navigate('/')
+            const { email, id } = user
+            // dotenv.config()
+            // let baseURL = process.env.REACT_APP_SERVER_BASE_URL_LOCAL
+            // if(process.env.NODE_ENV && process.env.NODE_ENV === 'prod'){
+            //     baseURL = process.env.REACT_APP_SERVER_BASE_URL_PROD
+            // }
+            const baseURL = 'http://localhost:5000'
+            fetch( baseURL + '/user/google-auth',{
+                method:'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ email, googleId: id})
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    console.log(data)
+                    if(data.success){
+                        navigate('/')
+                    }
+                })
+                .catch((error) => {
+                    console.log(error)
+                })
+            
         } catch (error) {
             console.log(error)
         }
@@ -55,6 +83,34 @@ const Auth = () => {
         onSuccess: googleSuccess,
         onError: (error) => console.log('Login Failed:', error)
     });
+    
+    // const handleGoogleSuccess = async( response ) => {
+    //     const { access_token } = response
+    //     try {
+    //         const result = await fetch('/user/google-auth', {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify({ codeResponse: access_token })
+    //         })
+    //         if(!result.ok){
+    //             throw new Error('Failed to authenticate with Google')
+    //         }
+    //         const user = result.json()
+    //         console.log(user)
+    //         dispatch(setProfileAction(user))
+    //         setUser(user)
+    //         navigate('/')
+    //     } catch (error) {
+    //         console.log(error)
+    //     }
+    // }
+
+    // const { googleSignIn } = useGoogleLogin({
+    //     onSuccess: handleGoogleSuccess,
+    //     onFailure: ( error ) => console.log(error),
+    //     clientID,
+    //     accessType: 'offline'
+    // })
 
     const handleShowPassword = () => setShowPassword((prevShowPassword) => !prevShowPassword)
     const switchMode = () => {setIsSignup((prevIsSignup) => !prevIsSignup)}
@@ -95,7 +151,7 @@ const Auth = () => {
                             <Button type="submit" fullWidth variant='contained' color='primary' sx={styles.submit}>
                                 { isSignup ? "Sign Up" : "Login"}
                             </Button>                            
-                            <Button sx={styles.googleButton} color='secondary' fullWidth startIcon={<Icon />} variant='contained' onClick={()=> login()}>
+                            <Button sx={styles.googleButton} color='secondary' fullWidth startIcon={<Icon />} variant='contained' onClick={login}>
                                 Sign in with Google!
                             </Button>
                             <Grid container justifyContent={"flex-end"}>

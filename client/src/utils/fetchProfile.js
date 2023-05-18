@@ -11,7 +11,7 @@ export const fetchProfile = (user, setProfile) => {
               }
             })
             .then((res) => {
-              localStorage.setItem('profile', JSON.stringify(res.data)); // store the user's profile in local storage
+              // localStorage.setItem('profile', JSON.stringify(res.data)); // store the user's profile in local storage
               resolve(res.data);
             })
             .catch((err) => console.log(err));
