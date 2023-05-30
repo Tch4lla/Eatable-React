@@ -6,6 +6,7 @@ import User from '../models/user.js'
 import axios from 'axios'
 import googleUser from '../models/googleUser.js'
 
+
 export const signin = async (req, res) => {
     const { email, password } = req.body
 
@@ -46,20 +47,20 @@ export const signup = async (req, res) => {
 }
 
 export const googleAuth = async (req, res) => {
-    const {email, googleId} = req.body
+    const {email, googleId, name} = req.body
 
     try {
         const user = await googleUser.findOne({ email })
 
         if(user) {
-            const token = jwt.sign({ email: user.email}, process.env.JWT_SECRET)
-            res.cookie('token', token, { httpOnly: true})
+            const token = jwt.sign({ email: user.email, name: user.name}, process.env.JWT_SECRET)
+            res.cookie('authToken', token, { httpOnly: true, SameSite: 'Lax', secure:true})
             res.json({success:true})
         } else {
-            const newUser = new googleUser({ email, googleId })
+            const newUser = new googleUser({ email, googleId, name })
             await newUser.save()
             const token = jwt.sign({ email: newUser.email}, process.env.JWT_SECRET)
-            res.cookie('token', token, { httpOnly: true})
+            res.cookie('authToken', token, { httpOnly: true, SameSite: 'Lax', secure: true})
             res.json({ success: true})
         }
     } catch (error) {
@@ -68,6 +69,25 @@ export const googleAuth = async (req, res) => {
     }
 }
 
+export const profile = async(req, res) => {
+    
+    const token = req.cookies.authToken
+    if(!token) return
+
+    jwt.verify( token, process.env.JWT_SECRET, (err, decoded) => {
+        if(err){
+            res.status(401).json({ success: false, message: 'Invalid token'})
+        } else {
+            const userInfo = decoded
+            console.log(userInfo)
+            res.json(userInfo)
+        }
+    })
+    
+}
+
+
+  
 // export const googleAuth = async (req, res) => {
 //     const { codeResponse } = req.body
 //     try {

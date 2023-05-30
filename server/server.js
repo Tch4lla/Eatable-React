@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv"
+import cookieParser from "cookie-parser";
 /* ----------Routes----------- */
 import postRoutes from './routes/posts.js'
 import userRoutes from './routes/users.js'
@@ -12,9 +13,13 @@ const app = express();
 dotenv.config()
 
 /* ----------Middleware----------- */
+app.use(cookieParser())
 app.use(bodyParser.json({limit: "30mb", extended: true}));
 app.use(bodyParser.urlencoded({limit: "30mb", extended: true}));
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+}));
 
 
 /* ----------Connecting to MongoDB----------- */

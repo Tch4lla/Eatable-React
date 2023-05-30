@@ -10,12 +10,13 @@ import Homepage from '../Homepage/Homepage'
 
 import { fetchProfile } from '../../utils/fetchProfile'
 import { useGoogleLogin } from '@react-oauth/google'
-import { setProfileAction } from '../../actions/profile'
+// import { setUserProfile } from '../../actions/profile'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { signin, signup } from '../../actions/auth'
 
 const initialState = { firstName: '', lastName: '', email: '', password: '', confirmPassword: ''}
+const baseURL = 'http://localhost:5000'
 const Auth = () => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -42,32 +43,56 @@ const Auth = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value})
     }
 
+    const fetchUserProfile = async () => {
+        try {
+
+            const response = await fetch(baseURL + '/user/profile', {
+                method: 'GET',
+                credentials: 'include'
+            })
+            // if(response.ok){
+            //     const userData = await response.json()
+            //     console.log("User Data: ", userData)
+            //     dispatch(setUserProfile(userData.profile))
+            // }
+
+            const data = await response.json()
+            if(data){
+                console.log("User Data: ", data)
+                // dispatch(setUserProfile(data.profile))
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     const googleSuccess = async ( codeResponse ) => {
         
         try {
             const user = await fetchProfile(codeResponse)
             setUser(user)
             console.log("User: ", user)
-            dispatch(setProfileAction(user))
-            const { email, id } = user
+            // dispatch(setProfileAction(user))
+            const { email, id, name } = user
             // dotenv.config()
             // let baseURL = process.env.REACT_APP_SERVER_BASE_URL_LOCAL
             // if(process.env.NODE_ENV && process.env.NODE_ENV === 'prod'){
             //     baseURL = process.env.REACT_APP_SERVER_BASE_URL_PROD
             // }
-            const baseURL = 'http://localhost:5000'
+            
             fetch( baseURL + '/user/google-auth',{
                 method:'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                credentials: 'same-origin',
-                body: JSON.stringify({ email, googleId: id})
+                credentials: 'include',
+                body: JSON.stringify({ email, googleId: id, name})
             })
                 .then((res) => res.json())
                 .then((data) => {
                     console.log(data)
                     if(data.success){
+                        fetchUserProfile()
                         navigate('/')
                     }
                 })

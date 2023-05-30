@@ -1,4 +1,4 @@
-import { AUTH, LOGOUT, GOOGLEAUTH} from "../constants/actionTypes"
+import { AUTH, LOGOUT, SET_USER_PROFILE} from "../constants/actionTypes"
 
 const initialState = {
     profile:null,
@@ -7,10 +7,10 @@ const initialState = {
 
 const reducer = ( state = initialState, action) => {
     switch ( action.type ) {
-        case GOOGLEAUTH:
+        case SET_USER_PROFILE:
             return {
                 ...state,
-                profile: action.data,
+                userProfile: action.data,
             }
         case AUTH:
             localStorage.setItem('profile', JSON.stringify({ ...action?.data}))

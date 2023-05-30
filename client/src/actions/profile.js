@@ -1,6 +1,6 @@
-import { GOOGLEAUTH } from "../constants/actionTypes";
+import { SET_USER_PROFILE } from "../constants/actionTypes";
 
-export const setProfileAction = (profile) => ({
-    type: GOOGLEAUTH,
+export const setUserProfile = (profile) => ({
+    type: SET_USER_PROFILE,
     payload: profile
 })
